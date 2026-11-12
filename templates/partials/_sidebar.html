@@ -1,0 +1,108 @@
+{% load static %}
+<aside id="app-sidebar" class="app-sidebar">
+  <!-- Brand Header -->
+  <div class="sidebar-header">
+    <a href="{% url 'dashboard:home' %}" class="sidebar-brand">
+      <img src="{% static 'img/logo.svg' %}" alt="EMS Logo" width="36" height="36" class="rounded-3">
+      <span>EMS<span class="text-primary">Pro</span></span>
+    </a>
+  </div>
+
+  <!-- Navigation Links -->
+  <div class="sidebar-content">
+    <ul class="sidebar-nav">
+      <li>
+        <a href="{% url 'dashboard:home' %}" class="nav-link {% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}">
+          <i class="bi bi-grid-1x2-fill"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      {% if is_admin_or_hr %}
+        <li class="nav-section-title">Workforce Management</li>
+        <li>
+          <a href="{% url 'employees:list' %}" class="nav-link {% if request.resolver_match.app_name == 'employees' %}active{% endif %}">
+            <i class="bi bi-people-fill"></i>
+            <span>Employees</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'departments:list' %}" class="nav-link {% if request.resolver_match.app_name == 'departments' %}active{% endif %}">
+            <i class="bi bi-diagram-3-fill"></i>
+            <span>Departments</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'attendance:list' %}" class="nav-link {% if request.resolver_match.app_name == 'attendance' and request.resolver_match.url_name != 'monthly_summary' %}active{% endif %}">
+            <i class="bi bi-calendar-check-fill"></i>
+            <span>Attendance Logs</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'leaves:list' %}" class="nav-link {% if request.resolver_match.app_name == 'leaves' %}active{% endif %}">
+            <i class="bi bi-calendar2-range-fill"></i>
+            <span>Leave Requests</span>
+          </a>
+        </li>
+      {% endif %}
+
+      <li class="nav-section-title">Personal Workspace</li>
+      {% if user_employee %}
+        <li>
+          <a href="{% url 'attendance:monthly_summary' user_employee.pk %}" class="nav-link {% if request.resolver_match.url_name == 'monthly_summary' %}active{% endif %}">
+            <i class="bi bi-clock-history"></i>
+            <span>My Attendance</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'leaves:apply' %}" class="nav-link {% if request.resolver_match.url_name == 'apply' %}active{% endif %}">
+            <i class="bi bi-send-plus-fill"></i>
+            <span>Apply for Leave</span>
+          </a>
+        </li>
+        {% if not is_admin_or_hr %}
+          <li>
+            <a href="{% url 'leaves:list' %}" class="nav-link {% if request.resolver_match.app_name == 'leaves' and request.resolver_match.url_name != 'apply' %}active{% endif %}">
+              <i class="bi bi-calendar-heart-fill"></i>
+              <span>My Leaves</span>
+            </a>
+          </li>
+        {% endif %}
+      {% endif %}
+      <li>
+        <a href="{% url 'accounts:profile' %}" class="nav-link {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'profile' %}active{% endif %}">
+          <i class="bi bi-person-badge-fill"></i>
+          <span>My Profile</span>
+        </a>
+      </li>
+
+      {% if user.is_superuser %}
+        <li class="nav-section-title">Administration</li>
+        <li>
+          <a href="{% url 'admin:index' %}" target="_blank" class="nav-link">
+            <i class="bi bi-sliders"></i>
+            <span>Django Admin</span>
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+
+  <!-- Sidebar Footer User Status -->
+  <div class="p-3 border-top mt-auto">
+    <div class="d-flex align-items-center gap-3">
+      {% if user_employee and user_employee.photo %}
+        <img src="{{ user_employee.photo_url }}" alt="{{ request.user.username }}" class="avatar avatar-sm">
+      {% else %}
+        <img src="{% static 'img/default-avatar.svg' %}" alt="{{ request.user.username }}" class="avatar avatar-sm">
+      {% endif %}
+      <div class="overflow-hidden">
+        <h6 class="mb-0 text-truncate font-monospace small fw-bold">{{ user_employee.employee_id|default:request.user.username }}</h6>
+        <small class="text-success d-flex align-items-center gap-1">
+          <span class="p-1 rounded-circle bg-success d-inline-block"></span> Online
+        </small>
+      </div>
+    </div>
+  </div>
+</aside>
+

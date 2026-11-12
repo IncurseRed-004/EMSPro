@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Monthly Attendance Summary - {{ employee.full_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Monthly Attendance Summary</h3>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'attendance:list' %}">Attendance</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ employee.employee_id }}</li>
+      </ol>
+    </nav>
+  </div>
+
+  <!-- Month Navigation Controls -->
+  <div class="d-flex align-items-center gap-2">
+    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn btn-outline-secondary rounded-pill px-3">
+      <i class="bi bi-chevron-left me-1"></i> Prev
+    </a>
+    <span class="badge bg-primary rounded-pill px-4 py-2 fs-6 fw-bold">
+      {{ summary.month_name }} {{ summary.year }}
+    </span>
+    <a href="?month={{ next_month }}&year={{ next_year }}" class="btn btn-outline-secondary rounded-pill px-3">
+      Next <i class="bi bi-chevron-right ms-1"></i>
+    </a>
+  </div>
+</div>
+
+<!-- Employee Header Card -->
+<div class="card rounded-4 p-4 mb-4 shadow-sm">
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <img src="{{ employee.photo_url }}" alt="{{ employee.full_name }}" class="avatar avatar-md shadow-sm">
+      <div>
+        <h4 class="fw-bold mb-0">{{ employee.full_name }}</h4>
+        <span class="text-muted small">{{ employee.designation }} • {{ employee.department.name|default:"Unassigned" }}</span>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 font-monospace">
+        {{ employee.employee_id }}
+      </span>
+      <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
+        {{ employee.status }}
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Monthly Performance Metric Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="card rounded-4 p-3 text-center h-100 card-hover">
+      <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">PRESENT</small>
+      <h3 class="fw-bold text-success mb-0 mt-1">{{ summary.status_counts.Present }}</h3>
+      <small class="text-muted" style="font-size: 0.75rem;">Days</small>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="card rounded-4 p-3 text-center h-100 card-hover">
+      <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">LATE ARRIVALS</small>
+      <h3 class="fw-bold text-warning mb-0 mt-1">{{ summary.status_counts.Late }}</h3>
+      <small class="text-muted" style="font-size: 0.75rem;">Days</small>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="card rounded-4 p-3 text-center h-100 card-hover">
+      <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">HALF-DAYS</small>
+      <h3 class="fw-bold text-info mb-0 mt-1">{{ summary.status_counts.Half_day|default:0 }}</h3>
+      <small class="text-muted" style="font-size: 0.75rem;">Days</small>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="card rounded-4 p-3 text-center h-100 card-hover">
+      <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">ABSENT</small>
+      <h3 class="fw-bold text-danger mb-0 mt-1">{{ summary.status_counts.Absent }}</h3>
+      <small class="text-muted" style="font-size: 0.75rem;">Days</small>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="card rounded-4 p-3 text-center h-100 card-hover">
+      <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">WORK HOURS</small>
+      <h3 class="fw-bold text-primary mb-0 mt-1">{{ summary.total_work_hours }}</h3>
+      <small class="text-muted" style="font-size: 0.75rem;">Hours</small>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="card rounded-4 p-3 text-center h-100 card-hover">
+      <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">ATTENDANCE RATE</small>
+      <h3 class="fw-bold text-primary mb-0 mt-1">{{ summary.attendance_rate }}%</h3>
+      <small class="text-muted" style="font-size: 0.75rem;">Active Rate</small>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Daily Breakdown Table -->
+<div class="card rounded-4 p-0 shadow-sm overflow-hidden mb-4">
+  <div class="p-3 border-bottom bg-body-tertiary">
+    <h5 class="fw-bold mb-0">Daily Logs for {{ summary.month_name }} {{ summary.year }}</h5>
+  </div>
+  {% if summary.records %}
+    <div class="table-responsive">
+      <table class="table table-custom align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Duration</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in summary.records %}
+            <tr>
+              <td class="fw-semibold">{{ r.date|date:"D, M d, Y" }}</td>
+              <td>{{ r.check_in|time:"h:i A"|default:"--" }}</td>
+              <td>{{ r.check_out|time:"h:i A"|default:"--" }}</td>
+              <td>
+                {% if r.duration_hours %}
+                  <span class="badge bg-body-secondary text-body">{{ r.duration_hours }} hrs</span>
+                {% else %}
+                  <span class="text-muted">--</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if r.status == 'Present' %}
+                  <span class="badge-status badge-present">Present</span>
+                {% elif r.status == 'Late' %}
+                  <span class="badge-status badge-late">Late</span>
+                {% elif r.status == 'Half-day' %}
+                  <span class="badge-status badge-half-day">Half-day</span>
+                {% else %}
+                  <span class="badge-status badge-absent">Absent</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted">{{ r.notes|default:"--" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state py-5">
+      <p class="text-muted mb-0">No attendance logged for {{ summary.month_name }} {{ summary.year }}.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+

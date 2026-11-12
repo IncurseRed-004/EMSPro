@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Leave Request Details - EMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h3 class="fw-bold mb-1">Leave Request #{{ leave.pk }}</h3>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'leaves:list' %}">Leaves</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Request #{{ leave.pk }}</li>
+          </ol>
+        </nav>
+      </div>
+      <div>
+        {% if leave.status == 'Approved' %}
+          <span class="badge-status badge-approved fs-6 px-3 py-2"><i class="bi bi-check-circle-fill"></i> Approved</span>
+        {% elif leave.status == 'Pending' %}
+          <span class="badge-status badge-pending fs-6 px-3 py-2"><i class="bi bi-clock-fill"></i> Pending</span>
+        {% else %}
+          <span class="badge-status badge-rejected fs-6 px-3 py-2"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Details Card -->
+    <div class="card rounded-4 p-4 shadow-sm mb-4">
+      <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+        <img src="{{ leave.employee.photo_url }}" alt="{{ leave.employee.full_name }}" class="avatar avatar-md shadow-sm">
+        <div>
+          <h5 class="fw-bold mb-0">{{ leave.employee.full_name }}</h5>
+          <span class="text-muted small">{{ leave.employee.designation }} • {{ leave.employee.department.name|default:"Unassigned" }}</span>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+          <small class="text-muted d-block">Leave Type</small>
+          <span class="fw-bold fs-6">{{ leave.leave_type }} Leave</span>
+        </div>
+        <div class="col-sm-6">
+          <small class="text-muted d-block">Duration</small>
+          <span class="fw-bold fs-6">{{ leave.duration_days }} Day{{ leave.duration_days|pluralize }}</span>
+        </div>
+        <div class="col-sm-6">
+          <small class="text-muted d-block">Start Date</small>
+          <span class="fw-semibold">{{ leave.start_date|date:"l, M d, Y" }}</span>
+        </div>
+        <div class="col-sm-6">
+          <small class="text-muted d-block">End Date</small>
+          <span class="fw-semibold">{{ leave.end_date|date:"l, M d, Y" }}</span>
+        </div>
+        <div class="col-12">
+          <small class="text-muted d-block">Reason</small>
+          <div class="p-3 rounded-3 bg-body-tertiary mt-1">
+            {{ leave.reason|linebreaks }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Review Information (if processed) -->
+      {% if leave.status != 'Pending' %}
+        <div class="p-3 rounded-4 border bg-body-tertiary mt-2">
+          <h6 class="fw-bold mb-2">Review Summary</h6>
+          <div class="small">
+            <div><strong class="text-body">Reviewed by:</strong> {{ leave.reviewed_by.get_full_name|default:leave.reviewed_by.username|default:"System Admin" }}</div>
+            {% if leave.review_remark %}
+              <div class="mt-1"><strong class="text-body">Remark:</strong> {{ leave.review_remark }}</div>
+            {% endif %}
+            <div class="text-muted mt-1">Updated on: {{ leave.updated_at|date:"M d, Y H:i" }}</div>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+        <a href="{% url 'leaves:list' %}" class="btn btn-light rounded-pill px-4">Back to Leaves</a>
+        {% if can_review and leave.status == 'Pending' %}
+          <a href="{% url 'leaves:review' leave.pk %}" class="btn btn-primary rounded-pill px-4">
+            <i class="bi bi-pencil-square me-1"></i> Review Request
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

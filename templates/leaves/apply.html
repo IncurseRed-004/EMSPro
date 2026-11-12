@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Apply for Leave - EMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h3 class="fw-bold mb-1">Apply for Leave</h3>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'leaves:list' %}">Leaves</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Apply</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Remaining Leave Quotas Card -->
+    {% if balances %}
+      <div class="card rounded-4 p-4 mb-4 border-0 shadow-sm bg-body-tertiary">
+        <h6 class="fw-bold mb-3 text-uppercase text-muted" style="font-size: 0.75rem;">YOUR CURRENT LEAVE BALANCES</h6>
+        <div class="row g-2">
+          {% for type_name, bal in balances.items %}
+            <div class="col-6 col-sm-3">
+              <div class="p-3 rounded-3 bg-body border text-center">
+                <span class="small text-muted d-block">{{ type_name }}</span>
+                <strong class="fs-5 text-primary">{{ bal.remaining }}</strong>
+                <small class="text-muted d-block" style="font-size: 0.72rem;">of {{ bal.quota }} days</small>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="card rounded-4 p-4 shadow-sm">
+      <form method="POST">
+        {% csrf_token %}
+        {{ form|crispy }}
+
+        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+          <a href="{% url 'leaves:list' %}" class="btn btn-light rounded-pill px-4">Cancel</a>
+          <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-send-fill me-1"></i> Submit Application
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

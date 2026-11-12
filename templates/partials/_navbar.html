@@ -1,0 +1,63 @@
+{% load static %}
+<header class="app-topbar">
+  <div class="d-flex align-items-center gap-3">
+    <!-- Sidebar Toggle for Mobile / Tablet -->
+    <button id="sidebar-toggle" class="btn btn-light d-lg-none p-2 rounded-3" type="button" aria-label="Toggle Sidebar">
+      <i class="bi bi-list fs-5"></i>
+    </button>
+
+    <!-- Quick Status / Greeting -->
+    <div class="d-none d-md-flex align-items-center gap-2">
+      <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-semibold">
+        <i class="bi bi-shield-check me-1"></i> Role: {{ user_role }}
+      </span>
+    </div>
+  </div>
+
+  <div class="d-flex align-items-center gap-3">
+    <!-- Theme Toggle (Dark / Light Mode) -->
+    <button id="theme-toggle-btn" class="btn btn-light rounded-circle p-2" style="width: 40px; height: 40px;" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Toggle Theme">
+      <i class="bi bi-moon-stars-fill text-secondary"></i>
+    </button>
+
+    <!-- User Profile Dropdown -->
+    <div class="dropdown">
+      <button class="btn btn-light p-1 pe-3 rounded-pill d-flex align-items-center gap-2 border" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        {% if user_employee and user_employee.photo %}
+          <img src="{{ user_employee.photo_url }}" alt="{{ request.user.username }}" class="avatar avatar-sm">
+        {% else %}
+          <img src="{% static 'img/default-avatar.svg' %}" alt="{{ request.user.username }}" class="avatar avatar-sm">
+        {% endif %}
+        <span class="d-none d-sm-inline fw-semibold text-truncate" style="max-width: 140px;">
+          {{ user_employee.full_name|default:request.user.username }}
+        </span>
+        <i class="bi bi-chevron-down text-muted small"></i>
+      </button>
+
+      <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 230px;">
+        <li class="px-3 py-2 border-bottom mb-2">
+          <p class="fw-bold mb-0 text-truncate">{{ user_employee.full_name|default:request.user.username }}</p>
+          <small class="text-muted text-truncate d-block">{{ request.user.email|default:"No email set" }}</small>
+          <span class="badge bg-secondary-subtle text-secondary rounded-pill mt-1">{{ user_role }}</span>
+        </li>
+        <li>
+          <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="{% url 'accounts:profile' %}">
+            <i class="bi bi-person text-primary"></i> My Profile
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="{% url 'accounts:change_password' %}">
+            <i class="bi bi-key text-warning"></i> Change Password
+          </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-danger" href="{% url 'accounts:logout' %}">
+            <i class="bi bi-box-arrow-right"></i> Sign Out
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</header>
+

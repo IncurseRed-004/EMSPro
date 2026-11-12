@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign In - EMS Enterprise{% endblock %}
+
+{% block public_content %}
+<div class="auth-split-layout">
+  <!-- Brand / Gradient Showcase Side -->
+  <div class="auth-brand-side">
+    <div style="max-width: 440px;" class="text-center text-lg-start">
+      <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-3 mb-4">
+        <img src="{% static 'img/logo.svg' %}" alt="EMS Logo" width="48" height="48" class="shadow rounded-3">
+        <h2 class="fw-bold mb-0 text-white">EMS<span class="text-warning">Pro</span></h2>
+      </div>
+      <h1 class="display-6 fw-bold mb-3 text-white">Streamline Workforce Operations</h1>
+      <p class="lead opacity-75 mb-4">
+        The unified enterprise management platform for employee records, department structures, real-time attendance, and automated leave workflows.
+      </p>
+
+      <div class="p-3 rounded-4 bg-white bg-opacity-10 backdrop-blur border border-white border-opacity-25 mt-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="p-2 rounded-circle bg-white text-primary">
+            <i class="bi bi-shield-lock-fill fs-5"></i>
+          </div>
+          <div>
+            <h6 class="mb-0 text-white fw-semibold">Role-Based Access Control</h6>
+            <small class="opacity-75">Admin, HR Manager, and Employee security enforcement</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sign In Form Side -->
+  <div class="auth-form-side">
+    <div style="width: 100%; max-width: 400px;">
+      <div class="text-center mb-4">
+        <h3 class="fw-bold mb-1">Welcome Back</h3>
+        <p class="text-muted">Enter your credentials to access your account</p>
+      </div>
+
+      <!-- Messages inside login form -->
+      {% if messages %}
+        <div class="mb-3">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} rounded-3 small py-2 px-3 border-0">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="POST" action="{% url 'accounts:login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" class="needs-validation" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="id_username" class="form-label small fw-semibold">Username or Email</label>
+          <div class="input-group">
+            <span class="input-group-text bg-body border-end-0 text-muted"><i class="bi bi-person"></i></span>
+            {{ form.username }}
+          </div>
+          {% if form.username.errors %}
+            <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-4">
+          <label for="id_password" class="form-label small fw-semibold">Password</label>
+          <div class="input-group">
+            <span class="input-group-text bg-body border-end-0 text-muted"><i class="bi bi-key"></i></span>
+            {{ form.password }}
+          </div>
+          {% if form.password.errors %}
+            <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-semibold shadow-sm mb-4">
+          <i class="bi bi-box-arrow-in-right me-2"></i> Sign In to Portal
+        </button>
+      </form>
+
+      <!-- Quick Demo Credentials Hint Card -->
+      <div class="card rounded-4 border p-3 bg-body-tertiary">
+        <h6 class="small fw-bold text-muted mb-2 text-uppercase tracking-wider">
+          <i class="bi bi-info-circle me-1"></i> Quick Demo Logins
+        </h6>
+        <div class="small text-muted d-flex flex-column gap-1">
+          <div><strong class="text-body">Admin:</strong> <code>admin</code> / <code>admin123</code></div>
+          <div><strong class="text-body">HR Manager:</strong> <code>hr_user</code> / <code>hr123</code></div>
+          <div><strong class="text-body">Employee:</strong> <code>emp_user</code> / <code>emp123</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

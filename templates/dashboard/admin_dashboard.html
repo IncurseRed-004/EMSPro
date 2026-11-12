@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Executive Dashboard - EMS{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Executive Dashboard</h3>
+    <p class="text-muted small mb-0">Overview of organizational workforce metrics and daily activities</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'employees:create' %}" class="btn btn-primary rounded-pill px-3 shadow-sm">
+      <i class="bi bi-person-plus-fill me-1"></i> Add Employee
+    </a>
+    <a href="{% url 'attendance:create' %}" class="btn btn-outline-primary rounded-pill px-3 shadow-sm">
+      <i class="bi bi-clock me-1"></i> Log Attendance
+    </a>
+  </div>
+</div>
+
+<!-- 5 Stat Cards -->
+<div class="row g-3 mb-4">
+  <!-- Total Employees -->
+  <div class="col-sm-6 col-xl-2 col-lg-4">
+    <div class="card stat-card h-100 card-hover">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted text-uppercase fw-bold" style="font-size: 0.72rem;">TOTAL STAFF</span>
+        <div class="stat-icon primary" style="width: 38px; height: 38px; font-size: 1.1rem;">
+          <i class="bi bi-people-fill"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold mb-1">{{ total_employees }}</h3>
+      <small class="text-muted">Registered in portal</small>
+    </div>
+  </div>
+
+  <!-- Active Employees -->
+  <div class="col-sm-6 col-xl-2 col-lg-4">
+    <div class="card stat-card h-100 card-hover">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted text-uppercase fw-bold" style="font-size: 0.72rem;">ACTIVE STAFF</span>
+        <div class="stat-icon success" style="width: 38px; height: 38px; font-size: 1.1rem;">
+          <i class="bi bi-person-check-fill"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold mb-1 text-success">{{ active_employees }}</h3>
+      <small class="text-muted">On active roster</small>
+    </div>
+  </div>
+
+  <!-- Departments -->
+  <div class="col-sm-6 col-xl-2 col-lg-4">
+    <div class="card stat-card h-100 card-hover">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted text-uppercase fw-bold" style="font-size: 0.72rem;">DEPARTMENTS</span>
+        <div class="stat-icon secondary" style="width: 38px; height: 38px; font-size: 1.1rem;">
+          <i class="bi bi-diagram-3-fill"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold mb-1">{{ total_departments }}</h3>
+      <small class="text-muted">Operational units</small>
+    </div>
+  </div>
+
+  <!-- Present Today -->
+  <div class="col-sm-6 col-xl-3 col-lg-6">
+    <div class="card stat-card h-100 card-hover">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted text-uppercase fw-bold" style="font-size: 0.72rem;">PRESENT TODAY</span>
+        <div class="stat-icon purple" style="width: 38px; height: 38px; font-size: 1.1rem;">
+          <i class="bi bi-calendar2-check-fill"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold mb-1 text-primary">{{ present_today }}</h3>
+      <small class="text-muted">Checked in today</small>
+    </div>
+  </div>
+
+  <!-- Pending Leaves -->
+  <div class="col-sm-6 col-xl-3 col-lg-6">
+    <div class="card stat-card h-100 card-hover">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted text-uppercase fw-bold" style="font-size: 0.72rem;">PENDING LEAVES</span>
+        <div class="stat-icon warning" style="width: 38px; height: 38px; font-size: 1.1rem;">
+          <i class="bi bi-clock-history"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold mb-1 text-warning">{{ pending_leaves }}</h3>
+      <small class="text-muted">Awaiting HR approval</small>
+    </div>
+  </div>
+</div>
+
+<!-- 3 Chart.js Visualizations -->
+<div class="row g-4 mb-4">
+  <!-- Chart 1: Attendance Trend (Line) -->
+  <div class="col-lg-8">
+    <div class="card rounded-4 p-4 h-100 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h5 class="fw-bold mb-0">Attendance Trend</h5>
+          <small class="text-muted">Daily workforce check-ins (Past 14 Days)</small>
+        </div>
+        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1">Last 14 Days</span>
+      </div>
+      <div style="height: 280px;">
+        <canvas id="attendanceTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 2: Employees by Department (Doughnut) -->
+  <div class="col-lg-4">
+    <div class="card rounded-4 p-4 h-100 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h5 class="fw-bold mb-0">Department Split</h5>
+          <small class="text-muted">Staff allocation</small>
+        </div>
+      </div>
+      <div style="height: 280px; position: relative;">
+        <canvas id="deptDoughnutChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 3: Employment Type Split (Bar) -->
+  <div class="col-12">
+    <div class="card rounded-4 p-4 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h5 class="fw-bold mb-0">Employment Type Distribution</h5>
+          <small class="text-muted">Contractual breakdown across all active staff</small>
+        </div>
+      </div>
+      <div style="height: 220px;">
+        <canvas id="empTypeBarChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Activities: Recent Joiners & Pending Leaves -->
+<div class="row g-4">
+  <!-- Recent Joiners Table -->
+  <div class="col-lg-6">
+    <div class="card rounded-4 p-4 h-100 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0">Recent Joiners</h5>
+        <a href="{% url 'employees:list' %}" class="btn btn-sm btn-light rounded-pill px-3">View All</a>
+      </div>
+
+      {% if recent_employees %}
+        <div class="table-responsive">
+          <table class="table table-custom align-middle mb-0">
+            <tbody>
+              {% for emp in recent_employees %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-3">
+                      <img src="{{ emp.photo_url }}" alt="{{ emp.full_name }}" class="avatar avatar-sm">
+                      <div>
+                        <a href="{% url 'employees:detail' emp.pk %}" class="fw-semibold text-decoration-none text-body d-block">
+                          {{ emp.full_name }}
+                        </a>
+                        <small class="text-muted">{{ emp.designation }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-body-secondary text-body rounded-pill px-3 py-1">
+                      {{ emp.department.name|default:"Unassigned" }}
+                    </span>
+                  </td>
+                  <td class="text-end small text-muted">
+                    {{ emp.date_of_joining|date:"M d, Y" }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">No recent joiners recorded yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pending Leave Requests Widget -->
+  <div class="col-lg-6">
+    <div class="card rounded-4 p-4 h-100 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0">Pending Leave Requests</h5>
+        <a href="{% url 'leaves:list' %}?status=Pending" class="btn btn-sm btn-light rounded-pill px-3">View All</a>
+      </div>
+
+      {% if pending_leave_requests %}
+        <div class="table-responsive">
+          <table class="table table-custom align-middle mb-0">
+            <tbody>
+              {% for l in pending_leave_requests %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-3">
+                      <img src="{{ l.employee.photo_url }}" alt="{{ l.employee.full_name }}" class="avatar avatar-sm">
+                      <div>
+                        <span class="fw-semibold text-body d-block">{{ l.employee.full_name }}</span>
+                        <small class="text-muted">{{ l.leave_type }} • {{ l.duration_days }} day{{ l.duration_days|pluralize }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="small">
+                    {{ l.start_date|date:"M d" }} - {{ l.end_date|date:"M d" }}
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'leaves:review' l.pk %}" class="btn btn-sm btn-primary rounded-pill px-3">
+                      Review
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-check-circle text-success fs-2 d-block mb-2"></i>
+          <p class="small mb-0">All leave requests have been reviewed!</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Embedded JSON Data for Chart.js -->
+{{ dept_chart|json_script:"dept-chart-data" }}
+{{ emp_type_chart|json_script:"emp-type-chart-data" }}
+{{ attendance_chart|json_script:"attendance-chart-data" }}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // 1. Department Distribution Doughnut Chart
+  const deptDataEl = document.getElementById('dept-chart-data');
+  if (deptDataEl) {
+    const deptData = JSON.parse(deptDataEl.textContent);
+    const ctxDept = document.getElementById('deptDoughnutChart').getContext('2d');
+    new Chart(ctxDept, {
+      type: 'doughnut',
+      data: {
+        labels: deptData.labels,
+        datasets: [{
+          data: deptData.data,
+          backgroundColor: [
+            '#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b'
+          ],
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 12, padding: 12 }
+          }
+        },
+        cutout: '70%'
+      }
+    });
+  }
+
+  // 2. Attendance Trend Line Chart
+  const attDataEl = document.getElementById('attendance-chart-data');
+  if (attDataEl) {
+    const attData = JSON.parse(attDataEl.textContent);
+    const ctxAtt = document.getElementById('attendanceTrendChart').getContext('2d');
+    new Chart(ctxAtt, {
+      type: 'line',
+      data: {
+        labels: attData.labels,
+        datasets: [{
+          label: 'Staff Present',
+          data: attData.data,
+          borderColor: '#4f46e5',
+          backgroundColor: 'rgba(79, 70, 229, 0.1)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#4f46e5',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  }
+
+  // 3. Employment Type Bar Chart
+  const empTypeDataEl = document.getElementById('emp-type-chart-data');
+  if (empTypeDataEl) {
+    const empTypeData = JSON.parse(empTypeDataEl.textContent);
+    const ctxType = document.getElementById('empTypeBarChart').getContext('2d');
+    new Chart(ctxType, {
+      type: 'bar',
+      data: {
+        labels: empTypeData.labels,
+        datasets: [{
+          label: 'Employees',
+          data: empTypeData.data,
+          backgroundColor: ['#4f46e5', '#3b82f6', '#10b981', '#f59e0b'],
+          borderRadius: 8,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}
+

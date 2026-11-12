@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Employee Portal - EMS{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div class="card rounded-4 p-4 mb-4 border-0 shadow-sm" style="background: var(--primary-gradient); color: #ffffff;">
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <img src="{{ employee.photo_url }}" alt="{{ employee.full_name }}" class="avatar avatar-lg shadow border border-2 border-white">
+      <div>
+        <h3 class="fw-bold mb-1 text-white">Hello, {{ employee.first_name }}!</h3>
+        <p class="mb-0 opacity-75">{{ employee.designation }} • {{ employee.department.name|default:"Unassigned" }}</p>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-2 font-monospace">
+        ID: {{ employee.employee_id }}
+      </span>
+      <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-2">
+        Status: {{ employee.status }}
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Today's Attendance Widget -->
+  <div class="col-lg-5">
+    <div class="card rounded-4 p-4 h-100 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0">Today's Attendance</h5>
+        <span class="badge bg-body-secondary text-body rounded-pill px-3 py-1 small">
+          {{ today|date:"l, M d" }}
+        </span>
+      </div>
+
+      <div class="text-center py-3">
+        {% if today_attendance and today_attendance.check_in %}
+          <div class="d-inline-flex p-3 rounded-circle bg-success bg-opacity-10 text-success mb-2">
+            <i class="bi bi-clock-history fs-2"></i>
+          </div>
+          <h4 class="fw-bold mb-1 text-success">Checked In</h4>
+          <p class="text-muted small mb-3">
+            Recorded at <strong>{{ today_attendance.check_in|time:"h:i A" }}</strong>
+            {% if today_attendance.check_out %}
+              <br>Checked out at <strong>{{ today_attendance.check_out|time:"h:i A" }}</strong>
+              ({{ today_attendance.duration_hours }} hrs)
+            {% endif %}
+          </p>
+
+          {% if not today_attendance.check_out %}
+            <form method="POST" action="{% url 'attendance:check_out' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-warning btn-lg rounded-pill px-4 shadow-sm w-100">
+                <i class="bi bi-box-arrow-right me-1"></i> Check Out Now
+              </button>
+            </form>
+          {% else %}
+            <div class="alert alert-success rounded-4 small py-2 mb-0">
+              <i class="bi bi-check-circle-fill me-1"></i> Daily attendance complete. Have a great evening!
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-2">
+            <i class="bi bi-fingerprint fs-2"></i>
+          </div>
+          <h4 class="fw-bold mb-1">Not Checked In Yet</h4>
+          <p class="text-muted small mb-3">Mark your daily attendance with a single click.</p>
+
+          <form method="POST" action="{% url 'attendance:check_in' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4 shadow-sm w-100">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Check In Now
+            </button>
+          </form>
+        {% endif %}
+      </div>
+
+      <div class="pt-3 border-top mt-auto d-flex justify-content-between align-items-center">
+        <span class="small text-muted">This month: <strong>{{ month_present }}</strong> days present</span>
+        <a href="{% url 'attendance:monthly_summary' employee.pk %}" class="small text-primary text-decoration-none fw-semibold">
+          View Monthly Summary <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leave Balances & Quick Actions -->
+  <div class="col-lg-7">
+    <div class="card rounded-4 p-4 h-100 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0">Leave Quota Balances</h5>
+        <a href="{% url 'leaves:apply' %}" class="btn btn-sm btn-primary rounded-pill px-3">
+          <i class="bi bi-send-fill me-1"></i> Apply Leave
+        </a>
+      </div>
+
+      <div class="row g-2 mb-4">
+        {% for type_name, bal in leave_balances.items %}
+          <div class="col-6 col-sm-3">
+            <div class="p-3 rounded-4 bg-body-tertiary text-center border">
+              <small class="text-muted d-block text-uppercase" style="font-size: 0.72rem;">{{ type_name }}</small>
+              <h3 class="fw-bold text-primary mb-0 mt-1">{{ bal.remaining }}</h3>
+              <small class="text-muted" style="font-size: 0.72rem;">/ {{ bal.quota }} days left</small>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Quick Shortcuts -->
+      <h6 class="fw-bold text-muted text-uppercase mb-2" style="font-size: 0.75rem;">QUICK ACTIONS</h6>
+      <div class="row g-2">
+        <div class="col-sm-4">
+          <a href="{% url 'leaves:apply' %}" class="btn btn-light rounded-4 w-100 text-start p-3 border d-flex align-items-center gap-2">
+            <i class="bi bi-send-plus-fill text-primary fs-5"></i>
+            <div>
+              <div class="fw-semibold small">Apply Leave</div>
+              <small class="text-muted">Submit request</small>
+            </div>
+          </a>
+        </div>
+        <div class="col-sm-4">
+          <a href="{% url 'attendance:monthly_summary' employee.pk %}" class="btn btn-light rounded-4 w-100 text-start p-3 border d-flex align-items-center gap-2">
+            <i class="bi bi-calendar3 text-success fs-5"></i>
+            <div>
+              <div class="fw-semibold small">My Calendar</div>
+              <small class="text-muted">Attendance history</small>
+            </div>
+          </a>
+        </div>
+        <div class="col-sm-4">
+          <a href="{% url 'accounts:profile' %}" class="btn btn-light rounded-4 w-100 text-start p-3 border d-flex align-items-center gap-2">
+            <i class="bi bi-person-gear text-warning fs-5"></i>
+            <div>
+              <div class="fw-semibold small">Edit Profile</div>
+              <small class="text-muted">Photo & contact</small>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Personal History: Recent Attendance & Leave Applications -->
+<div class="row g-4">
+  <!-- Recent Attendance -->
+  <div class="col-lg-6">
+    <div class="card rounded-4 p-4 h-100 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0">My Recent Attendance</h5>
+        <a href="{% url 'attendance:monthly_summary' employee.pk %}" class="btn btn-sm btn-light rounded-pill px-3">View All</a>
+      </div>
+
+      {% if recent_attendance %}
+        <div class="table-responsive">
+          <table class="table table-custom align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>In</th>
+                <th>Out</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for att in recent_attendance %}
+                <tr>
+                  <td class="fw-semibold">{{ att.date|date:"D, M d" }}</td>
+                  <td>{{ att.check_in|time:"h:i A"|default:"--" }}</td>
+                  <td>{{ att.check_out|time:"h:i A"|default:"--" }}</td>
+                  <td>
+                    {% if att.status == 'Present' %}
+                      <span class="badge-status badge-present">Present</span>
+                    {% elif att.status == 'Late' %}
+                      <span class="badge-status badge-late">Late</span>
+                    {% elif att.status == 'Half-day' %}
+                      <span class="badge-status badge-half-day">Half-day</span>
+                    {% else %}
+                      <span class="badge-status badge-absent">Absent</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">No recent attendance records found.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent Leave Applications -->
+  <div class="col-lg-6">
+    <div class="card rounded-4 p-4 h-100 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0">My Leave Applications</h5>
+        <a href="{% url 'leaves:list' %}" class="btn btn-sm btn-light rounded-pill px-3">View All</a>
+      </div>
+
+      {% if recent_leaves %}
+        <div class="table-responsive">
+          <table class="table table-custom align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Dates</th>
+                <th>Days</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for l in recent_leaves %}
+                <tr>
+                  <td><span class="fw-semibold">{{ l.leave_type }}</span></td>
+                  <td class="small">{{ l.start_date|date:"M d" }} - {{ l.end_date|date:"M d" }}</td>
+                  <td>{{ l.duration_days }}</td>
+                  <td>
+                    {% if l.status == 'Approved' %}
+                      <span class="badge-status badge-approved">Approved</span>
+                    {% elif l.status == 'Pending' %}
+                      <span class="badge-status badge-pending">Pending</span>
+                    {% else %}
+                      <span class="badge-status badge-rejected">Rejected</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">No leave applications submitted yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+

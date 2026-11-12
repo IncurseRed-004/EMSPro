@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}403 Access Denied - EMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+  <div class="col-md-8 col-lg-6 text-center">
+    <div class="card rounded-4 p-5 shadow-sm border-0">
+      <div class="mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-10 text-danger p-4" style="width: 96px; height: 96px;">
+          <i class="bi bi-shield-slash-fill fs-1"></i>
+        </div>
+      </div>
+      <h2 class="fw-bold mb-2">403 - Access Denied</h2>
+      <p class="text-muted mb-4">
+        {{ exception|default:"You do not have the required permissions or role privileges to view this page or modify this resource." }}
+      </p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{% url 'dashboard:home' %}" class="btn btn-primary rounded-pill px-4">
+          <i class="bi bi-house-door-fill me-1"></i> Return to Dashboard
+        </a>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary rounded-pill px-4">
+          <i class="bi bi-arrow-left me-1"></i> Go Back
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

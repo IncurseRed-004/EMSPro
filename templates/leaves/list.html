@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Leave Requests - EMS{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">{% if is_admin_or_hr %}Leave Management{% else %}My Leave Requests{% endif %}</h3>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Leaves</li>
+      </ol>
+    </nav>
+  </div>
+  <div>
+    <a href="{% url 'leaves:apply' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+      <i class="bi bi-send-plus-fill me-1"></i> Apply for Leave
+    </a>
+  </div>
+</div>
+
+<!-- Leave Balances Banner for Employees -->
+{% if balances %}
+  <div class="row g-3 mb-4">
+    {% for type_name, bal in balances.items %}
+      <div class="col-6 col-md-3">
+        <div class="card rounded-4 p-3 border-0 shadow-sm card-hover bg-body-tertiary">
+          <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.72rem;">{{ type_name }} LEAVE</small>
+          <div class="d-flex align-items-baseline gap-2 mt-2">
+            <h3 class="fw-bold mb-0 text-primary">{{ bal.remaining }}</h3>
+            <span class="text-muted small">/ {{ bal.quota }} days left</span>
+          </div>
+          <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">Used: {{ bal.used }} days this year</small>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<!-- Filters for Admin/HR -->
+{% if is_admin_or_hr %}
+  <div class="card rounded-4 p-3 mb-4">
+    <form method="GET" class="row g-2 align-items-center">
+      <div class="col-6 col-md-4">
+        <select name="status" class="form-select">
+          <option value="">All Statuses</option>
+          <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+          <option value="Approved" {% if status_filter == 'Approved' %}selected{% endif %}>Approved</option>
+          <option value="Rejected" {% if status_filter == 'Rejected' %}selected{% endif %}>Rejected</option>
+        </select>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <select name="type" class="form-select">
+          <option value="">All Leave Types</option>
+          <option value="Casual" {% if type_filter == 'Casual' %}selected{% endif %}>Casual Leave</option>
+          <option value="Sick" {% if type_filter == 'Sick' %}selected{% endif %}>Sick Leave</option>
+          <option value="Paid" {% if type_filter == 'Paid' %}selected{% endif %}>Paid Leave</option>
+          <option value="Unpaid" {% if type_filter == 'Unpaid' %}selected{% endif %}>Unpaid Leave</option>
+        </select>
+      </div>
+
+      <div class="col-8 col-md-3">
+        <select name="employee" class="form-select">
+          <option value="">All Employees</option>
+          {% for emp in all_employees %}
+            <option value="{{ emp.id }}" {% if selected_employee == emp.id|stringformat:"s" %}selected{% endif %}>
+              {{ emp.full_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-4 col-md-2 d-flex gap-1">
+        <button type="submit" class="btn btn-primary rounded-pill w-100">Filter</button>
+        <a href="{% url 'leaves:list' %}" class="btn btn-light rounded-pill"><i class="bi bi-arrow-counterclockwise"></i></a>
+      </div>
+    </form>
+  </div>
+{% endif %}
+
+<!-- Leave Requests Table -->
+{% if page_obj %}
+  <div class="card rounded-4 p-0 shadow-sm overflow-hidden mb-4">
+    <div class="table-responsive">
+      <table class="table table-custom align-middle mb-0">
+        <thead>
+          <tr>
+            {% if is_admin_or_hr %}<th>Employee</th>{% endif %}
+            <th>Type</th>
+            <th>Duration</th>
+            <th>Dates</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Applied On</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for leave in page_obj %}
+            <tr>
+              {% if is_admin_or_hr %}
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <img src="{{ leave.employee.photo_url }}" alt="{{ leave.employee.full_name }}" class="avatar avatar-sm">
+                    <div>
+                      <a href="{% url 'employees:detail' leave.employee.pk %}" class="fw-semibold text-decoration-none text-body d-block">
+                        {{ leave.employee.full_name }}
+                      </a>
+                      <small class="text-muted font-monospace">{{ leave.employee.employee_id }}</small>
+                    </div>
+                  </div>
+                </td>
+              {% endif %}
+              <td>
+                <span class="badge bg-body-secondary text-body rounded-pill px-3 py-1 fw-semibold">
+                  {{ leave.leave_type }}
+                </span>
+              </td>
+              <td><strong>{{ leave.duration_days }}</strong> day{{ leave.duration_days|pluralize }}</td>
+              <td class="small">{{ leave.start_date|date:"M d" }} to {{ leave.end_date|date:"M d, Y" }}</td>
+              <td>
+                <span class="small text-muted text-truncate d-inline-block" style="max-width: 200px;" title="{{ leave.reason }}">
+                  {{ leave.reason }}
+                </span>
+              </td>
+              <td>
+                {% if leave.status == 'Approved' %}
+                  <span class="badge-status badge-approved"><i class="bi bi-check-circle-fill"></i> Approved</span>
+                {% elif leave.status == 'Pending' %}
+                  <span class="badge-status badge-pending"><i class="bi bi-clock-fill"></i> Pending</span>
+                {% else %}
+                  <span class="badge-status badge-rejected"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted">{{ leave.applied_on|date:"M d, Y" }}</td>
+              <td class="text-end">
+                <div class="d-flex justify-content-end gap-1">
+                  <a href="{% url 'leaves:detail' leave.pk %}" class="btn btn-sm btn-light rounded-pill px-3">
+                    Details
+                  </a>
+                  {% if is_admin_or_hr and leave.status == 'Pending' %}
+                    <a href="{% url 'leaves:review' leave.pk %}" class="btn btn-sm btn-primary rounded-pill px-3">
+                      Review
+                    </a>
+                  {% endif %}
+                  {% if leave.status == 'Pending' and not is_admin_or_hr %}
+                    <form method="POST" action="{% url 'leaves:cancel' leave.pk %}" onsubmit="return confirm('Cancel this leave request?');" class="d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Cancel Application">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% include 'partials/_pagination.html' %}
+{% else %}
+  <div class="card rounded-4 p-5 text-center">
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <i class="bi bi-calendar2-range"></i>
+      </div>
+      <h5 class="fw-bold">No Leave Applications Found</h5>
+      <p class="text-muted mb-3">No leave requests match your search criteria.</p>
+      <a href="{% url 'leaves:apply' %}" class="btn btn-primary rounded-pill px-4">
+        <i class="bi bi-send-plus-fill me-1"></i> Apply for Leave
+      </a>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+

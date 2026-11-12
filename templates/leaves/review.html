@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Review Leave Request - EMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h3 class="fw-bold mb-1">Review Leave Application</h3>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'leaves:list' %}">Leaves</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Review #{{ leave.pk }}</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Application Summary Card -->
+    <div class="card rounded-4 p-4 shadow-sm mb-4">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <img src="{{ leave.employee.photo_url }}" alt="{{ leave.employee.full_name }}" class="avatar avatar-md shadow-sm">
+        <div>
+          <h5 class="fw-bold mb-0">{{ leave.employee.full_name }}</h5>
+          <span class="text-muted small">{{ leave.employee.designation }} • {{ leave.employee.department.name|default:"Unassigned" }}</span>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-4 bg-body-tertiary mb-3 small">
+        <div class="row g-2">
+          <div class="col-sm-6"><strong>Leave Type:</strong> {{ leave.leave_type }} Leave</div>
+          <div class="col-sm-6"><strong>Duration:</strong> {{ leave.duration_days }} day{{ leave.duration_days|pluralize }}</div>
+          <div class="col-sm-6"><strong>Start Date:</strong> {{ leave.start_date|date:"M d, Y" }}</div>
+          <div class="col-sm-6"><strong>End Date:</strong> {{ leave.end_date|date:"M d, Y" }}</div>
+          <div class="col-12 mt-2">
+            <strong>Reason stated:</strong>
+            <div class="mt-1 text-muted">{{ leave.reason }}</div>
+          </div>
+        </div>
+      </div>
+
+      <form method="POST">
+        {% csrf_token %}
+        {{ form|crispy }}
+
+        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+          <a href="{% url 'leaves:list' %}" class="btn btn-light rounded-pill px-4">Cancel</a>
+          <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-check-circle-fill me-1"></i> Submit Decision
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
