@@ -1,0 +1,28 @@
+databases:
+  - name: emspro-db
+    databaseName: ems_db
+    user: ems_user
+    plan: free
+
+services:
+  - type: web
+    name: emspro-web
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn ems_project.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: emspro-db
+          property: connectionString
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"

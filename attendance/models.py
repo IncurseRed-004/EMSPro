@@ -17,7 +17,7 @@ class Attendance(models.Model):
         on_delete=models.CASCADE,
         related_name='attendances'
     )
-    date = models.DateField(default=timezone.now)
+    date = models.DateField(default=timezone.localdate)
     check_in = models.TimeField(null=True, blank=True)
     check_out = models.TimeField(null=True, blank=True)
     status = models.CharField(
