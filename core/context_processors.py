@@ -1,8 +1,10 @@
 def role_context(request):
     """
     Exposes role flags and current employee profile to all templates.
+    Handles requests safely even if user attribute is not set.
     """
-    if not request.user.is_authenticated:
+    user = getattr(request, 'user', None)
+    if not user or not user.is_authenticated:
         return {
             'user_role': 'Anonymous',
             'is_admin': False,

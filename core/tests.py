@@ -43,6 +43,16 @@ class CoreDecoratorsAndContextTests(TestCase):
 
         self.superuser = User.objects.create_superuser(username='super', email='super@test.com', password='password123')
 
+    def test_role_context_without_user_attribute(self):
+        request = self.factory.get('/')
+        # request without .user attribute (as created by RequestFactory before middleware)
+        ctx = role_context(request)
+        self.assertEqual(ctx['user_role'], 'Anonymous')
+        self.assertFalse(ctx['is_admin'])
+        self.assertFalse(ctx['is_hr'])
+        self.assertFalse(ctx['is_admin_or_hr'])
+        self.assertIsNone(ctx['user_employee'])
+
     def test_role_context_anonymous(self):
         request = self.factory.get('/')
         request.user = AnonymousUser()
