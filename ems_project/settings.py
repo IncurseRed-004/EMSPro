@@ -6,6 +6,7 @@ from pathlib import Path
 from decouple import config, Csv
 from django.contrib.messages import constants as messages_constants
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -177,16 +178,31 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # WhiteNoise storage for compressed and cached assets
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
-# Backward compatibility
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+IS_TESTING = (
+    'test' in sys.argv
+    or any('test' in arg for arg in sys.argv)
+)
+
+if DEBUG or IS_TESTING:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "core.storage.WhiteNoiseStaticFilesStorage",
+        },
+    }
+    STATICFILES_STORAGE = 'core.storage.WhiteNoiseStaticFilesStorage'
 
 # Media files (Profile uploads)
 MEDIA_URL = '/media/'
