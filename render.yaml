@@ -1,9 +1,3 @@
-databases:
-  - name: emspro-db
-    databaseName: ems_db
-    user: ems_user
-    plan: free
-
 services:
   - type: web
     name: emspro-web
@@ -21,8 +15,6 @@ services:
       - key: ALLOWED_HOSTS
         value: ".onrender.com,localhost,127.0.0.1"
       - key: DATABASE_URL
-        fromDatabase:
-          name: emspro-db
-          property: connectionString
+        sync: false
       - key: CSRF_TRUSTED_ORIGINS
         value: "https://*.onrender.com"
